@@ -52,6 +52,19 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
 .q{text-align:right;min-width:78px}
 .q b{display:block;font-size:26px;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--st)}
 .q i{font-style:normal;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--st)}
+.logos{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px}
+.logos img{display:block}.logos .sep{width:1px;height:40px;background:#e5e7eb}
+.plate{background:#fff;border-radius:8px;padding:8px 12px;display:flex;align-items:center}
+.plate img{display:block;height:42px;width:auto;max-width:210px}
+#aviso{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:24px;z-index:30}
+#aviso .box{background:#fff;border-radius:12px;max-width:360px;width:100%;overflow:hidden;text-align:center}
+#aviso .tp{border-top:6px solid var(--acc);padding:22px 22px 6px}
+#aviso .tp img{height:54px;max-width:100%;width:auto}
+#aviso h3{margin:14px 0 2px;font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut)}
+#aviso .dt{font-size:26px;font-weight:700;color:var(--acc);margin:4px 0 10px;line-height:1.2}
+#aviso p{margin:0 22px 8px;font-size:14px;color:#374151}
+#aviso .off{color:#b45309;font-weight:600}
+#aviso button{display:block;width:calc(100% - 44px);margin:14px 22px 22px;padding:14px;border:0;border-radius:8px;background:var(--acc);color:#fff;font-size:16px;font-weight:700}
 .inst{display:block;width:100%;padding:12px;border-radius:8px;background:#fff;font-size:14px;font-weight:600;cursor:pointer}
 #login .inst{margin-top:10px;border:1px solid #d1d5db;color:#1f2937}
 .instrow{padding:12px 16px 0}
@@ -66,6 +79,7 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
 </head>
 <body>
 <div id="login"><div class="box">
+ <div class="logos"><img src="logo-sh.png" alt="Santa Helena Sementes" height="56"><span class="sep"></span><img src="logo-bm.png" alt="Biomatrix Sementes" height="34"></div>
  <div class="eyebrow">Estoque de Sementes</div>
  <h1>Acesso do Vendedor</h1>
  <label for="pin">Coloque seu PIN de vendedor</label>
@@ -77,8 +91,8 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
 
 <div id="app">
  <header>
-  <div class="top"><div><div class="eyebrow2">Estoque disponível</div><h2 id="titulo"></h2></div>
-  <button id="out">Sair</button></div>
+  <div class="top"><div class="plate"><img id="hlogo" alt=""></div><button id="out">Sair</button></div>
+  <div style="margin-top:14px"><div class="eyebrow2">Estoque disponível</div><h2 id="titulo"></h2></div>
   <div class="sum"><div><b id="n1">0</b><span>Produtos</span></div><div><b id="n2">0</b><span>Unidades</span></div></div>
  </header>
  <div class="instrow"><button class="inst">Instalar aplicativo</button></div>
@@ -87,6 +101,10 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
  <ul id="list"></ul>
 </div>
 
+<div id="aviso"><div class="box"><div class="tp"><img id="alogo" alt=""></div>
+ <h3 id="alab">Estoque atualizado em</h3><div class="dt" id="adt"></div>
+ <p>Confira a data antes de informar disponibilidade aos clientes.</p><p class="off" id="aoff"></p>
+ <button id="aok">OK</button></div></div>
 <div id="how"><div class="box"><h3>Instalar aplicativo</h3><div id="howb"></div><button id="howx">Entendi</button></div></div>
 
 <script>
@@ -118,7 +136,8 @@ SMH BM3063BTMAX FORTIS D C4L 60S,F2MB1AG21978,16.2 KG,2026/2026,145`};
 /* ===== FIM DA CONFIGURAÇÃO ===== */
 
 const $=id=>document.getElementById(id);
-let marca=null,dados=[],quando=null;
+let marca=null,dados=[],quando=null,dataPlan="",offline=false,oculto=0;
+const LOGO={sh:"logo-sh.png",bm:"logo-bm.png"};
 
 function csv(t){const sep=t.split("\n")[0].includes("\t")?"\t":",";const r=[];let l=[],c="",q=false;
  for(let i=0;i<t.length;i++){const h=t[i];
@@ -133,6 +152,9 @@ function parse(t){const rows=csv(t);
  const hd=rows[hi].map(x=>x.trim().toUpperCase());
  const ix=n=>hd.findIndex(x=>x.startsWith(n));
  const [d,l,p,s,q]=["DESCRI","LOTE","PESO","SAFRA","QUANT"].map(ix);
+ dataPlan="";
+ for(const r of rows){const i=r.findIndex(x=>/atualizad/i.test(x));if(i<0)continue;
+  const v=r.slice(i+1).find(x=>x&&x.trim())||(r[i].split(/[:：]/)[1]||"");if(v.trim()){dataPlan=v.trim();break}}
  return rows.slice(hi+1).filter(r=>(r[d]||"").trim()).map(r=>({
   desc:r[d].trim(),lote:(r[l]||"").trim(),peso:(r[p]||"").trim().replace(/(\d)\.(\d)/,"$1,$2"),
   safra:(r[s]||"").trim(),qtd:parseInt(String(r[q]||"0").replace(/\D/g,""))||0}))}
@@ -148,20 +170,20 @@ async function carregar(){
   if(!m.url)txt=DEMO[marca];
   else{const r=await fetch(m.url+(m.url.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});
    if(!r.ok)throw 0;txt=await r.text()}
-  dados=parse(txt);quando=new Date();
-  localStorage.setItem(ck,JSON.stringify({dados,quando}));
+  dados=parse(txt);quando=new Date();offline=false;
+  localStorage.setItem(ck,JSON.stringify({dados,quando,dataPlan}));
   draw();
  }catch(e){
   const c=JSON.parse(localStorage.getItem(ck)||"null");
-  if(c){dados=c.dados;quando=new Date(c.quando);draw();$("upd").textContent="Sem conexão · exibindo dados de "+fmt(quando)}
-  else{dados=[];draw();$("upd").textContent="Não foi possível carregar o estoque."}
+  if(c){dados=c.dados;quando=new Date(c.quando);dataPlan=c.dataPlan||"";offline=true;draw();$("upd").textContent="Sem conexão · exibindo dados de "+fmt(quando)}
+  else{dados=[];offline=false;draw();$("upd").textContent="Não foi possível carregar o estoque."}
  }}
 
 function draw(){
  const m=MARCAS[marca],f=$("q").value.trim().toLowerCase();
  $("n1").textContent=dados.length;$("n2").textContent=dados.reduce((a,x)=>a+x.qtd,0);
  const ls=dados.filter(x=>!f||(x.desc+" "+x.lote).toLowerCase().includes(f));
- $("upd").textContent=(quando?"Última atualização: "+fmt(quando)+" · ":"")+ls.length+" item(ns) exibido(s)";
+ $("upd").textContent=(quando?(dataPlan?"Estoque atualizado em: "+dataPlan:"Consulta em: "+fmt(quando))+" · ":"")+ls.length+" item(ns) exibido(s)";
  $("list").innerHTML=ls.length?ls.map(x=>{
   const st=x.qtd<=0?"out":x.qtd<=m.baixo?"low":"ok",tx={out:"Esgotado",low:"Estoque baixo",ok:"Disponível"}[st];
   return `<li class="${st}"><div class="info"><div class="nm">${esc(x.desc)}</div>
@@ -173,8 +195,16 @@ function entrar(k){
  marca=k;localStorage.setItem("marca",k);
  document.body.className=k;
  document.querySelector("meta[name=theme-color]").content=k=="sh"?"#b91c1c":"#15803d";
- $("titulo").textContent=MARCAS[k].titulo;$("q").value="";
- $("login").style.display="none";$("app").style.display="block";carregar()}
+ $("titulo").textContent=MARCAS[k].titulo;$("hlogo").src=LOGO[k];$("hlogo").alt=MARCAS[k].titulo;$("q").value="";
+ $("login").style.display="none";$("app").style.display="block";carregar().then(aviso)}
+
+function aviso(){
+ if(!marca||!quando)return;
+ $("alogo").src=LOGO[marca];$("alab").textContent=dataPlan?"Estoque atualizado em":"Dados consultados em";
+ $("adt").textContent=dataPlan||fmt(quando);
+ $("aoff").textContent=offline?"Sem conexão: exibindo a última posição salva neste aparelho.":"";
+ $("aviso").style.display="flex"}
+$("aok").onclick=()=>$("aviso").style.display="none";
 
 function sair(){
  localStorage.removeItem("marca");marca=null;document.body.className="";
@@ -186,7 +216,8 @@ $("go").onclick=()=>{
  if(k)entrar(k);else{$("err").textContent="PIN incorreto. Verifique e tente novamente.";$("pin").value=""}};
 $("pin").onkeydown=e=>{if(e.key=="Enter")$("go").click()};
 $("out").onclick=sair;$("rf").onclick=carregar;$("q").oninput=draw;
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&marca)carregar()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){oculto=Date.now();return}
+ if(marca){const longo=Date.now()-oculto>30*60*1000;carregar().then(()=>{if(longo)aviso()})}});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 /* ===== Instalação do app ===== */
 let ev=null;
