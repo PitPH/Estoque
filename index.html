@@ -85,10 +85,9 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
  <label for="pin">Coloque seu PIN de vendedor</label>
  <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
  <div id="err"></div>
-  <button id="go">Acessar</button>
+ <button id="go">Acessar</button>
  <button class="inst">Instalar aplicativo</button>
 </div></div>
-
 <div id="app">
  <header>
   <div class="top"><div class="plate"><img id="hlogo" alt=""></div><button id="out">Sair</button></div>
@@ -100,31 +99,25 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
  <div class="meta" id="upd"></div>
  <ul id="list"></ul>
 </div>
-
 <div id="aviso"><div class="box"><div class="tp"><img id="alogo" alt=""></div>
- <h3 id="alab">Estoque atualizado em</h3><div class="dt" id="adt"></div>
+ <h3 id="alab">Última atualização da planilha</h3><div class="dt" id="adt"></div>
  <p>Confira a data antes de informar disponibilidade aos clientes.</p><p class="off" id="aoff"></p>
  <button id="aok">OK</button></div></div>
 <div id="how"><div class="box"><h3>Instalar aplicativo</h3><div id="howb"></div><button id="howx">Entendi</button></div></div>
-
 <script>
-/* ===== CONFIGURAÇÃO — edite aqui =====
-   url: link da aba publicada no Google Sheets.
-   pin: PIN do vendedor (cada marca deve ter um PIN diferente).
-   baixo: até essa quantidade aparece "Estoque baixo". */
+/* ===== CONFIGURAÇÃO ===== */
 const MARCAS={
  sh:{titulo:"Santa Helena Sementes",url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vQz_gOb3ZTdN5SaQEauupmuHEqG685ZtR8lfWlRgxvDD2p9i1bdVdOExGEoTkCfyfUkKr4m1eqVwAG6/pub?gid=853641678&single=true&output=tsv",pin:"00",baixo:15},
  bm:{titulo:"Biomatrix Sementes",url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vQz_gOb3ZTdN5SaQEauupmuHEqG685ZtR8lfWlRgxvDD2p9i1bdVdOExGEoTkCfyfUkKr4m1eqVwAG6/pub?gid=1319097589&single=true&output=tsv",pin:"11",baixo:15}
 };
-/* Dados de exemplo (usados só enquanto "url" estiver vazia) */
 const DEMO={
-sh:`DESCRIÇÃO,LOTE,PESO,SAFRA,QUANTIDADE
+ sh:`DESCRIÇÃO,LOTE,PESO,SAFRA,QUANTIDADE
 SMH SHS7939BTMAX FORTIS D C2L 60S,D1MS3AG21831,16.2 KG,2026/2026,59
 SMH SHS2065BTMAX FORTIS ND C1L 60S,FC2MS1AF17892,19.3 KG,2025/2025,13
 SMH SHS SUPERR R4L 2KG,MS1AG2KG22336,2 KG,2025/2025,10
 SMH SHS7957VIP3 FORTIS D C2 60S,F1MS1AG20198,13.1 KG,2025/2025,38
 SMH SHS7990BTMAX FORTIS D C3M 60S,F2MS1AG22241,17.2 KG,2026/2026,38`,
-bm:`DESCRIÇÃO,LOTE,PESO,SAFRA,QUANTIDADE
+ bm:`DESCRIÇÃO,LOTE,PESO,SAFRA,QUANTIDADE
 SMH BM3063BTMAX FORTIS ND C2L 60S,FC1MB1AG21626,20.3 KG,2026/2026,48
 SMH BM3063BTMAX FORTIS D R2 60S,F2MB1AG22240,23.8 KG,2026/2026,3
 SMH BM3066BTMAX FORTIS NDB C1 60S,FPV2MB1AF18397,18.2 KG,2025/2025,8
@@ -132,112 +125,130 @@ BM SORGO PODIUM FORTIS S RG 10KG,BC2SB12G21403,10 KG,2026/2026,97
 SMH BM3066BTMAX FORTIS NDB C2M 60S,PDV1MB1AG19954,21.1 KG,2025/2026,1
 SMH BM3066BTMAX FORTIS NDB C3L 60S,PDV1MB1AG19796,17.4 KG,2025/2026,14
 SMH BM3066BTMAX FORTIS NDB C3M 60S,PDV1MB1AG19736,17.3 KG,2025/2026,38
-SMH BM3063BTMAX FORTIS D C4L 60S,F2MB1AG21978,16.2 KG,2026/2026,145`};
+SMH BM3063BTMAX FORTIS D C4L 60S,F2MB1AG21978,16.2 KG,2026/2026,145`
+};
 /* ===== FIM DA CONFIGURAÇÃO ===== */
-
 const $=id=>document.getElementById(id);
 let marca=null,dados=[],quando=null,dataPlan="",offline=false,oculto=0;
 const LOGO={sh:"logo-sh.png",bm:"logo-bm.png"};
-
 function csv(t){const sep=t.split("\n")[0].includes("\t")?"\t":",";const r=[];let l=[],c="",q=false;
  for(let i=0;i<t.length;i++){const h=t[i];
   if(q){if(h=='"'&&t[i+1]=='"'){c+='"';i++}else if(h=='"')q=false;else c+=h}
-  else if(h=='"')q=true;else if(h==sep){l.push(c);c=""}
-  else if(h=="\n"||h=="\r"){if(h=="\r"&&t[i+1]=="\n")i++;l.push(c);r.push(l);l=[];c=""}
+  else if(h=='"')q=true;else if(h===sep){l.push(c);c=""}
+  else if(h==="\n"||h==="\r"){if(h==="\r"&&t[i+1]==="\n")i++;l.push(c);r.push(l);l=[];c=""}
   else c+=h}
  l.push(c);r.push(l);return r}
-
-function parse(t){const rows=csv(t);
- const hi=rows.findIndex(r=>r.some(x=>/DESCRI/i.test(x)));if(hi<0)return[];
- const hd=rows[hi].map(x=>x.trim().toUpperCase());
+function parse(t){
+ const rows=csv(t);
+ const hi=rows.findIndex(r=>r.some(x=>/DESCRI/i.test(x)));
+ if(hi<0)throw new Error("Cabeçalho DESCRIÇÃO não encontrado na planilha.");
+ const hd=rows[hi].map(x=>String(x||"").trim().toUpperCase());
  const ix=n=>hd.findIndex(x=>x.startsWith(n));
  const [d,l,p,s,q]=["DESCRI","LOTE","PESO","SAFRA","QUANT"].map(ix);
+ if(d<0||q<0)throw new Error("Colunas obrigatórias não encontradas na planilha.");
  dataPlan="";
- for(const r of rows){const i=r.findIndex(x=>/atualizad/i.test(x));if(i<0)continue;
-  const v=r.slice(i+1).find(x=>x&&x.trim())||(r[i].split(/[:：]/)[1]||"");if(v.trim()){dataPlan=v.trim();break}}
- return rows.slice(hi+1).filter(r=>(r[d]||"").trim()).map(r=>({
-  desc:r[d].trim(),lote:(r[l]||"").trim(),peso:(r[p]||"").trim().replace(/(\d)\.(\d)/,"$1,$2"),
-  safra:(r[s]||"").trim(),qtd:parseInt(String(r[q]||"0").replace(/\D/g,""))||0}))}
-
-const fmt=d=>d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-
+ for(const row of rows){
+  for(let i=0;i<row.length;i++){
+   const label=String(row[i]||"").trim();
+   if(!/atualizad[oa]/i.test(label))continue;
+   const inline=label.match(/atualizad[oa](?:\s+em)?\s*[:：-]\s*(.+)$/i);
+   const value=(inline&&inline[1])||row.slice(i+1).map(x=>String(x||"").trim()).find(Boolean)||"";
+   if(value){dataPlan=value.trim();break}
+  }
+  if(dataPlan)break;
+ }
+ return rows.slice(hi+1).filter(r=>String(r[d]||"").trim()).map(r=>({
+  desc:String(r[d]||"").trim(),lote:String(r[l]||"").trim(),peso:String(r[p]||"").trim().replace(/(\d)\.(\d)/,"$1,$2"),
+  safra:String(r[s]||"").trim(),qtd:parseInt(String(r[q]||"0").replace(/\D/g,""),10)||0
+ }));
+}
+const esc=s=>String(s).replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 async function carregar(){
  const m=MARCAS[marca],ck="cache_"+marca;
- $("upd").textContent="Atualizando…";
+ $("upd").textContent="Atualizando estoque pela planilha…";
  try{
   let txt;
   if(!m.url)txt=DEMO[marca];
-  else{const r=await fetch(m.url+(m.url.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});
-   if(!r.ok)throw 0;txt=await r.text()}
+  else{
+   const r=await fetch(m.url+(m.url.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});
+   if(!r.ok)throw new Error("Falha ao consultar a planilha.");
+   txt=await r.text();
+  }
   dados=parse(txt);quando=new Date();offline=false;
   localStorage.setItem(ck,JSON.stringify({dados,quando,dataPlan}));
   draw();
  }catch(e){
   const c=JSON.parse(localStorage.getItem(ck)||"null");
-  if(c){dados=c.dados;quando=new Date(c.quando);dataPlan=c.dataPlan||"";offline=true;draw();$("upd").textContent="Sem conexão · exibindo dados de "+fmt(quando)}
-  else{dados=[];offline=false;draw();$("upd").textContent="Não foi possível carregar o estoque."}
- }}
-
+  if(c){dados=c.dados||[];quando=c.quando?new Date(c.quando):null;dataPlan=c.dataPlan||"";offline=true;draw();}
+  else{dados=[];quando=null;dataPlan="";offline=false;draw();$("upd").textContent="Não foi possível carregar o estoque. Verifique sua conexão.";}
+ }
+}
 function draw(){
  const m=MARCAS[marca],f=$("q").value.trim().toLowerCase();
  $("n1").textContent=dados.length;$("n2").textContent=dados.reduce((a,x)=>a+x.qtd,0);
  const ls=dados.filter(x=>!f||(x.desc+" "+x.lote).toLowerCase().includes(f));
- $("upd").textContent=(quando?(dataPlan?"Estoque atualizado em: "+dataPlan:"Consulta em: "+fmt(quando))+" · ":"")+ls.length+" item(ns) exibido(s)";
+ const status=dataPlan?"Planilha atualizada em: "+esc(dataPlan):"Data de atualização não informada na planilha";
+ $("upd").textContent=status+(offline?" · Sem conexão: usando dados salvos neste aparelho":" · ")+ls.length+" item(ns) exibido(s)";
  $("list").innerHTML=ls.length?ls.map(x=>{
   const st=x.qtd<=0?"out":x.qtd<=m.baixo?"low":"ok",tx={out:"Esgotado",low:"Estoque baixo",ok:"Disponível"}[st];
   return `<li class="${st}"><div class="info"><div class="nm">${esc(x.desc)}</div>
   <div class="det"><div><small>Lote</small><span>${esc(x.lote)}</span></div><div><small>Peso</small><span>${esc(x.peso)}</span></div><div><small>Safra</small><span>${esc(x.safra)}</span></div></div></div>
   <div class="q"><b>${x.qtd}</b><i>${tx}</i></div></li>`}).join(""):
-  `<div class="empty">Nenhum produto encontrado.</div>`}
-
+  `<div class="empty">Nenhum produto encontrado.</div>`;
+}
 function entrar(k){
- marca=k;localStorage.setItem("marca",k);
- document.body.className=k;
- document.querySelector("meta[name=theme-color]").content=k=="sh"?"#b91c1c":"#15803d";
+ marca=k;localStorage.setItem("marca",k);document.body.className=k;
+ document.querySelector("meta[name=theme-color]").content=k==="sh"?"#b91c1c":"#15803d";
  $("titulo").textContent=MARCAS[k].titulo;$("hlogo").src=LOGO[k];$("hlogo").alt=MARCAS[k].titulo;$("q").value="";
- $("login").style.display="none";$("app").style.display="block";carregar().then(aviso)}
-
+ $("login").style.display="none";$("app").style.display="block";
+ carregar().then(aviso);
+}
 function aviso(){
- if(!marca||!quando)return;
- $("alogo").src=LOGO[marca];$("alab").textContent=dataPlan?"Estoque atualizado em":"Dados consultados em";
- $("adt").textContent=dataPlan||fmt(quando);
- $("aoff").textContent=offline?"Sem conexão: exibindo a última posição salva neste aparelho.":"";
- $("aviso").style.display="flex"}
+ if(!marca)return;
+ $("alogo").src=LOGO[marca];
+ $("alab").textContent=dataPlan?"Última atualização da planilha":"Data de atualização não registrada";
+ $("adt").textContent=dataPlan||"Não informada";
+ $("aoff").textContent=offline?"Sem conexão: exibindo os últimos dados salvos neste aparelho.":(!dataPlan?"A planilha principal ainda não possui uma data de atualização registrada.":"");
+ $("aviso").style.display="flex";
+}
 $("aok").onclick=()=>$("aviso").style.display="none";
-
 function sair(){
  localStorage.removeItem("marca");marca=null;document.body.className="";
  document.querySelector("meta[name=theme-color]").content="#1f2937";
- $("app").style.display="none";$("login").style.display="flex";$("pin").value="";$("err").textContent=""}
-
+ $("app").style.display="none";$("login").style.display="flex";$("pin").value="";$("err").textContent="";
+}
 $("go").onclick=()=>{
  const v=$("pin").value.trim(),k=Object.keys(MARCAS).find(k=>MARCAS[k].pin&&MARCAS[k].pin===v);
- if(k)entrar(k);else{$("err").textContent="PIN incorreto. Verifique e tente novamente.";$("pin").value=""}};
-$("pin").onkeydown=e=>{if(e.key=="Enter")$("go").click()};
+ if(k)entrar(k);else{$("err").textContent="PIN incorreto. Verifique e tente novamente.";$("pin").value="";}
+};
+$("pin").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
 $("out").onclick=sair;$("rf").onclick=carregar;$("q").oninput=draw;
-document.addEventListener("visibilitychange",()=>{if(document.hidden){oculto=Date.now();return}
- if(marca){const longo=Date.now()-oculto>30*60*1000;carregar().then(()=>{if(longo)aviso()})}});
-if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden){oculto=Date.now();return;}
+ if(marca){carregar().then(()=>{if(Date.now()-oculto>30*60*1000)aviso();});}
+});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 /* ===== Instalação do app ===== */
 let ev=null;
 const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 const ua=navigator.userAgent,ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 const iosSafari=ios&&!/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
 const ol=a=>"<ol>"+a.map(x=>"<li>"+x+"</li>").join("")+"</ol>";
-function showInst(){document.querySelectorAll(".inst").forEach(b=>b.style.display=standalone()?"none":"block")}
+function showInst(){document.querySelectorAll(".inst").forEach(b=>b.style.display=standalone()?"none":"block");}
 async function instalar(){
- if(ev){ev.prompt();try{await ev.userChoice}catch(e){}ev=null;return}
+ if(ev){ev.prompt();try{await ev.userChoice;}catch(e){}ev=null;return;}
  let h;
  if(ios&&!iosSafari)h="<p>No iPhone a instalação só funciona pelo <b>Safari</b>. Copie este link e abra-o no Safari.</p>";
  else if(ios)h=ol(["Toque no botão <b>Compartilhar</b> (quadrado com uma seta para cima) na barra do Safari.","Role a lista e toque em <b>Adicionar à Tela de Início</b>.","Toque em <b>Adicionar</b>."]);
  else h=ol(["Toque no menu <b>⋮</b> do navegador (canto superior).","Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.","Confirme a instalação."]);
- $("howb").innerHTML=h;$("how").style.display="flex"}
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();ev=e});
-window.addEventListener("appinstalled",()=>{ev=null;showInst()});
+ $("howb").innerHTML=h;$("how").style.display="flex";
+}
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();ev=e;});
+window.addEventListener("appinstalled",()=>{ev=null;showInst();});
 document.querySelectorAll(".inst").forEach(b=>b.onclick=instalar);
 $("howx").onclick=()=>$("how").style.display="none";
 showInst();
 const salvo=localStorage.getItem("marca");if(salvo&&MARCAS[salvo])entrar(salvo);
 </script>
-</body></html>
+</body>
+</html>
