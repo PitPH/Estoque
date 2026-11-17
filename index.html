@@ -54,6 +54,10 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
 .q i{font-style:normal;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--st)}
 .logos{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px}
 .logos img{display:block}.logos .sep{width:1px;height:40px;background:#e5e7eb}
+.cd-tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:1.25px;line-height:1.2;text-transform:uppercase;border-radius:999px}
+.cd-tag:before{content:"";width:7px;height:7px;border-radius:50%;background:#d6a84f;flex:none}
+.login-cd{margin:0 auto 16px;padding:8px 12px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}
+.app-cd{margin-top:12px;padding:7px 11px;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
 .plate{background:#fff;border-radius:8px;padding:8px 12px;display:flex;align-items:center}
 .plate img{display:block;height:42px;width:auto;max-width:210px}
 #aviso{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:24px;z-index:30}
@@ -80,6 +84,7 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
 <body>
 <div id="login"><div class="box">
  <div class="logos"><img src="logo-sh.png" alt="Santa Helena Sementes" height="56"><span class="sep"></span><img src="logo-bm.png" alt="Biomatrix Sementes" height="34"></div>
+ <div class="cd-tag login-cd">ESTOQUE CD ITUMBIARA/GO</div>
  <div class="eyebrow">Estoque de Sementes</div>
  <h1>Acesso do Vendedor</h1>
  <label for="pin">Coloque seu PIN de vendedor</label>
@@ -91,6 +96,7 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
 <div id="app">
  <header>
   <div class="top"><div class="plate"><img id="hlogo" alt=""></div><button id="out">Sair</button></div>
+  <div class="cd-tag app-cd">ESTOQUE CD ITUMBIARA/GO</div>
   <div style="margin-top:14px"><div class="eyebrow2">Estoque disponível</div><h2 id="titulo"></h2></div>
   <div class="sum"><div><b id="n1">0</b><span>Produtos</span></div><div><b id="n2">0</b><span>Unidades</span></div></div>
  </header>
