@@ -52,6 +52,15 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
 .q{text-align:right;min-width:78px}
 .q b{display:block;font-size:26px;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--st)}
 .q i{font-style:normal;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--st)}
+.inst{display:block;width:100%;padding:12px;border-radius:8px;background:#fff;font-size:14px;font-weight:600;cursor:pointer}
+#login .inst{margin-top:10px;border:1px solid #d1d5db;color:#1f2937}
+.instrow{padding:12px 16px 0}
+.instrow .inst{border:1.5px solid var(--acc);color:var(--acc)}
+#how{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:20}
+#how .box{background:#fff;border-radius:12px;padding:24px 22px;max-width:360px;width:100%}
+#how h3{margin:0 0 12px;font-size:18px}
+#how ol{margin:0;padding-left:20px}#how li{display:list-item;background:none;border:0;padding:0;margin:0 0 10px;font-size:15px}
+#how button{width:100%;margin-top:6px;padding:12px;border:0;border-radius:8px;background:#1f2937;color:#fff;font-size:15px;font-weight:600}
 .empty{text-align:center;color:var(--mut);padding:40px 20px}
 </style>
 </head>
@@ -62,7 +71,8 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
  <label for="pin">Coloque seu PIN de vendedor</label>
  <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
  <div id="err"></div>
- <button id="go">Acessar</button>
+  <button id="go">Acessar</button>
+ <button class="inst">Instalar aplicativo</button>
 </div></div>
 
 <div id="app">
@@ -71,10 +81,13 @@ li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
   <button id="out">Sair</button></div>
   <div class="sum"><div><b id="n1">0</b><span>Produtos</span></div><div><b id="n2">0</b><span>Unidades</span></div></div>
  </header>
+ <div class="instrow"><button class="inst">Instalar aplicativo</button></div>
  <div class="bar"><input id="q" type="search" placeholder="Buscar por produto ou lote"><button id="rf">Atualizar</button></div>
  <div class="meta" id="upd"></div>
  <ul id="list"></ul>
 </div>
+
+<div id="how"><div class="box"><h3>Instalar aplicativo</h3><div id="howb"></div><button id="howx">Entendi</button></div></div>
 
 <script>
 /* ===== CONFIGURAÇÃO — edite aqui =====
@@ -175,6 +188,25 @@ $("pin").onkeydown=e=>{if(e.key=="Enter")$("go").click()};
 $("out").onclick=sair;$("rf").onclick=carregar;$("q").oninput=draw;
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&marca)carregar()});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* ===== Instalação do app ===== */
+let ev=null;
+const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const ua=navigator.userAgent,ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const iosSafari=ios&&!/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+const ol=a=>"<ol>"+a.map(x=>"<li>"+x+"</li>").join("")+"</ol>";
+function showInst(){document.querySelectorAll(".inst").forEach(b=>b.style.display=standalone()?"none":"block")}
+async function instalar(){
+ if(ev){ev.prompt();try{await ev.userChoice}catch(e){}ev=null;return}
+ let h;
+ if(ios&&!iosSafari)h="<p>No iPhone a instalação só funciona pelo <b>Safari</b>. Copie este link e abra-o no Safari.</p>";
+ else if(ios)h=ol(["Toque no botão <b>Compartilhar</b> (quadrado com uma seta para cima) na barra do Safari.","Role a lista e toque em <b>Adicionar à Tela de Início</b>.","Toque em <b>Adicionar</b>."]);
+ else h=ol(["Toque no menu <b>⋮</b> do navegador (canto superior).","Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.","Confirme a instalação."]);
+ $("howb").innerHTML=h;$("how").style.display="flex"}
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();ev=e});
+window.addEventListener("appinstalled",()=>{ev=null;showInst()});
+document.querySelectorAll(".inst").forEach(b=>b.onclick=instalar);
+$("howx").onclick=()=>$("how").style.display="none";
+showInst();
 const salvo=localStorage.getItem("marca");if(salvo&&MARCAS[salvo])entrar(salvo);
 </script>
 </body></html>
