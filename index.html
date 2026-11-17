@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estoque de Sementes</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f2937">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Estoque">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{--acc:#1f2937;--bg:#f3f4f6;--card:#fff;--ink:#111827;--mut:#6b7280;--line:#e5e7eb;--ok:#15803d;--low:#b45309;--out:#b91c1c}
+body.sh{--acc:#b91c1c}body.bm{--acc:#15803d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+button,input{font-family:inherit}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(#1f2937,#111827)}
+#login .box{background:#fff;border-radius:12px;padding:32px 26px;width:100%;max-width:360px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#login .eyebrow{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);font-weight:600}
+#login h1{margin:6px 0 22px;font-size:22px;font-weight:700}
+#login label{display:block;font-size:14px;font-weight:600;margin-bottom:10px}
+#pin{width:100%;padding:14px;border:1px solid #d1d5db;border-radius:8px;font-size:22px;text-align:center;letter-spacing:8px}
+#pin:focus{outline:2px solid #1f2937;border-color:#1f2937}
+#go{width:100%;margin-top:14px;padding:14px;border:0;border-radius:8px;background:#1f2937;color:#fff;font-size:16px;font-weight:600}
+#err{min-height:20px;margin-top:10px;font-size:13px;color:#b91c1c}
+#app{display:none}
+header{background:var(--acc);color:#fff;padding:calc(env(safe-area-inset-top) + 16px) 18px 18px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.eyebrow2{font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;opacity:.85;font-weight:600}
+h2{margin:3px 0 0;font-size:21px;font-weight:700}
+#out{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:7px 12px;font-size:13px;font-weight:600}
+.sum{display:flex;gap:10px;margin-top:16px}
+.sum div{flex:1;background:rgba(0,0,0,.18);border-radius:8px;padding:10px 12px}
+.sum b{display:block;font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.sum span{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;opacity:.85}
+.bar{padding:14px 16px 6px;display:flex;gap:8px}
+#q{flex:1;min-width:0;padding:12px 14px;border:1px solid #d1d5db;border-radius:8px;background:#fff;font-size:15px}
+#q:focus{outline:2px solid var(--acc);border-color:var(--acc)}
+#rf{padding:0 16px;border:1px solid #d1d5db;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:var(--ink)}
+.meta{padding:4px 18px 8px;font-size:12.5px;color:var(--mut)}
+ul{list-style:none;margin:0;padding:0 16px 40px;display:grid;gap:8px}
+li{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--st);border-radius:8px;padding:12px 14px;display:flex;gap:12px;align-items:center}
+li.ok{--st:var(--ok)}li.low{--st:var(--low)}li.out{--st:var(--out)}
+.info{flex:1;min-width:0}
+.nm{font-weight:600;font-size:14.5px;overflow-wrap:anywhere}
+.det{margin-top:6px;display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:2px 18px}
+.det small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--mut)}
+.det span{font-size:13px}
+.q{text-align:right;min-width:78px}
+.q b{display:block;font-size:26px;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--st)}
+.q i{font-style:normal;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--st)}
+.empty{text-align:center;color:var(--mut);padding:40px 20px}
+</style>
+</head>
+<body>
+<div id="login"><div class="box">
+ <div class="eyebrow">Estoque de Sementes</div>
+ <h1>Acesso do Vendedor</h1>
+ <label for="pin">Coloque seu PIN de vendedor</label>
+ <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">
+ <div id="err"></div>
+ <button id="go">Acessar</button>
+</div></div>
+
+<div id="app">
+ <header>
+  <div class="top"><div><div class="eyebrow2">Estoque disponível</div><h2 id="titulo"></h2></div>
+  <button id="out">Sair</button></div>
+  <div class="sum"><div><b id="n1">0</b><span>Produtos</span></div><div><b id="n2">0</b><span>Unidades</span></div></div>
+ </header>
+ <div class="bar"><input id="q" type="search" placeholder="Buscar por produto ou lote"><button id="rf">Atualizar</button></div>
+ <div class="meta" id="upd"></div>
+ <ul id="list"></ul>
+</div>
+
+<script>
+/* ===== CONFIGURAÇÃO — edite aqui =====
+   url: link da aba publicada no Google Sheets.
+   pin: PIN do vendedor (cada marca deve ter um PIN diferente).
+   baixo: até essa quantidade aparece "Estoque baixo". */
+const MARCAS={
+ sh:{titulo:"Santa Helena Sementes",url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vQz_gOb3ZTdN5SaQEauupmuHEqG685ZtR8lfWlRgxvDD2p9i1bdVdOExGEoTkCfyfUkKr4m1eqVwAG6/pub?gid=853641678&single=true&output=tsv",pin:"00",baixo:15},
+ bm:{titulo:"Biomatrix Sementes",url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vQz_gOb3ZTdN5SaQEauupmuHEqG685ZtR8lfWlRgxvDD2p9i1bdVdOExGEoTkCfyfUkKr4m1eqVwAG6/pub?gid=1319097589&single=true&output=tsv",pin:"11",baixo:15}
+};
+/* Dados de exemplo (usados só enquanto "url" estiver vazia) */
+const DEMO={
+sh:`DESCRIÇÃO,LOTE,PESO,SAFRA,QUANTIDADE
+SMH SHS7939BTMAX FORTIS D C2L 60S,D1MS3AG21831,16.2 KG,2026/2026,59
+SMH SHS2065BTMAX FORTIS ND C1L 60S,FC2MS1AF17892,19.3 KG,2025/2025,13
+SMH SHS SUPERR R4L 2KG,MS1AG2KG22336,2 KG,2025/2025,10
+SMH SHS7957VIP3 FORTIS D C2 60S,F1MS1AG20198,13.1 KG,2025/2025,38
+SMH SHS7990BTMAX FORTIS D C3M 60S,F2MS1AG22241,17.2 KG,2026/2026,38`,
+bm:`DESCRIÇÃO,LOTE,PESO,SAFRA,QUANTIDADE
+SMH BM3063BTMAX FORTIS ND C2L 60S,FC1MB1AG21626,20.3 KG,2026/2026,48
+SMH BM3063BTMAX FORTIS D R2 60S,F2MB1AG22240,23.8 KG,2026/2026,3
+SMH BM3066BTMAX FORTIS NDB C1 60S,FPV2MB1AF18397,18.2 KG,2025/2025,8
+BM SORGO PODIUM FORTIS S RG 10KG,BC2SB12G21403,10 KG,2026/2026,97
+SMH BM3066BTMAX FORTIS NDB C2M 60S,PDV1MB1AG19954,21.1 KG,2025/2026,1
+SMH BM3066BTMAX FORTIS NDB C3L 60S,PDV1MB1AG19796,17.4 KG,2025/2026,14
+SMH BM3066BTMAX FORTIS NDB C3M 60S,PDV1MB1AG19736,17.3 KG,2025/2026,38
+SMH BM3063BTMAX FORTIS D C4L 60S,F2MB1AG21978,16.2 KG,2026/2026,145`};
+/* ===== FIM DA CONFIGURAÇÃO ===== */
+
+const $=id=>document.getElementById(id);
+let marca=null,dados=[],quando=null;
+
+function csv(t){const sep=t.split("\n")[0].includes("\t")?"\t":",";const r=[];let l=[],c="",q=false;
+ for(let i=0;i<t.length;i++){const h=t[i];
+  if(q){if(h=='"'&&t[i+1]=='"'){c+='"';i++}else if(h=='"')q=false;else c+=h}
+  else if(h=='"')q=true;else if(h==sep){l.push(c);c=""}
+  else if(h=="\n"||h=="\r"){if(h=="\r"&&t[i+1]=="\n")i++;l.push(c);r.push(l);l=[];c=""}
+  else c+=h}
+ l.push(c);r.push(l);return r}
+
+function parse(t){const rows=csv(t);
+ const hi=rows.findIndex(r=>r.some(x=>/DESCRI/i.test(x)));if(hi<0)return[];
+ const hd=rows[hi].map(x=>x.trim().toUpperCase());
+ const ix=n=>hd.findIndex(x=>x.startsWith(n));
+ const [d,l,p,s,q]=["DESCRI","LOTE","PESO","SAFRA","QUANT"].map(ix);
+ return rows.slice(hi+1).filter(r=>(r[d]||"").trim()).map(r=>({
+  desc:r[d].trim(),lote:(r[l]||"").trim(),peso:(r[p]||"").trim().replace(/(\d)\.(\d)/,"$1,$2"),
+  safra:(r[s]||"").trim(),qtd:parseInt(String(r[q]||"0").replace(/\D/g,""))||0}))}
+
+const fmt=d=>d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function carregar(){
+ const m=MARCAS[marca],ck="cache_"+marca;
+ $("upd").textContent="Atualizando…";
+ try{
+  let txt;
+  if(!m.url)txt=DEMO[marca];
+  else{const r=await fetch(m.url+(m.url.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});
+   if(!r.ok)throw 0;txt=await r.text()}
+  dados=parse(txt);quando=new Date();
+  localStorage.setItem(ck,JSON.stringify({dados,quando}));
+  draw();
+ }catch(e){
+  const c=JSON.parse(localStorage.getItem(ck)||"null");
+  if(c){dados=c.dados;quando=new Date(c.quando);draw();$("upd").textContent="Sem conexão · exibindo dados de "+fmt(quando)}
+  else{dados=[];draw();$("upd").textContent="Não foi possível carregar o estoque."}
+ }}
+
+function draw(){
+ const m=MARCAS[marca],f=$("q").value.trim().toLowerCase();
+ $("n1").textContent=dados.length;$("n2").textContent=dados.reduce((a,x)=>a+x.qtd,0);
+ const ls=dados.filter(x=>!f||(x.desc+" "+x.lote).toLowerCase().includes(f));
+ $("upd").textContent=(quando?"Última atualização: "+fmt(quando)+" · ":"")+ls.length+" item(ns) exibido(s)";
+ $("list").innerHTML=ls.length?ls.map(x=>{
+  const st=x.qtd<=0?"out":x.qtd<=m.baixo?"low":"ok",tx={out:"Esgotado",low:"Estoque baixo",ok:"Disponível"}[st];
+  return `<li class="${st}"><div class="info"><div class="nm">${esc(x.desc)}</div>
+  <div class="det"><div><small>Lote</small><span>${esc(x.lote)}</span></div><div><small>Peso</small><span>${esc(x.peso)}</span></div><div><small>Safra</small><span>${esc(x.safra)}</span></div></div></div>
+  <div class="q"><b>${x.qtd}</b><i>${tx}</i></div></li>`}).join(""):
+  `<div class="empty">Nenhum produto encontrado.</div>`}
+
+function entrar(k){
+ marca=k;localStorage.setItem("marca",k);
+ document.body.className=k;
+ document.querySelector("meta[name=theme-color]").content=k=="sh"?"#b91c1c":"#15803d";
+ $("titulo").textContent=MARCAS[k].titulo;$("q").value="";
+ $("login").style.display="none";$("app").style.display="block";carregar()}
+
+function sair(){
+ localStorage.removeItem("marca");marca=null;document.body.className="";
+ document.querySelector("meta[name=theme-color]").content="#1f2937";
+ $("app").style.display="none";$("login").style.display="flex";$("pin").value="";$("err").textContent=""}
+
+$("go").onclick=()=>{
+ const v=$("pin").value.trim(),k=Object.keys(MARCAS).find(k=>MARCAS[k].pin&&MARCAS[k].pin===v);
+ if(k)entrar(k);else{$("err").textContent="PIN incorreto. Verifique e tente novamente.";$("pin").value=""}};
+$("pin").onkeydown=e=>{if(e.key=="Enter")$("go").click()};
+$("out").onclick=sair;$("rf").onclick=carregar;$("q").oninput=draw;
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&marca)carregar()});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+const salvo=localStorage.getItem("marca");if(salvo&&MARCAS[salvo])entrar(salvo);
+</script>
+</body></html>

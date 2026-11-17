@@ -1,0 +1,36 @@
+COMO COLOCAR O APP NO AR (grátis, ~15 minutos)
+
+PARTE 1 — Planilha no Google Sheets
+1. Acesse sheets.google.com > Arquivo > Importar > envie o estoque_sementes.xlsx
+   (use "Criar nova planilha"). Fica com uma aba para cada marca.
+2. Em cada aba, deixe os cabeçalhos: DESCRIÇÃO, LOTE, PESO, SAFRA, QUANTIDADE
+   (o título "SANTA HELENA SEMENTES" acima pode ficar, o app ignora).
+3. Arquivo > Compartilhar > Publicar na web.
+4. Em "Link", escolha a aba (Planilha1) e o formato "Valores separados por vírgula (.csv)" > Publicar.
+5. Copie o link gerado. Repita para a outra aba (Planilha2).
+
+PARTE 2 — Configurar o app
+6. Abra o index.html no Bloco de Notas e ache o trecho "CONFIGURAÇÃO".
+7. Cole o link da aba 1 em url de Santa Helena e o da aba 2 em url de Biomatrix.
+8. Troque os PINs (1111 e 2222) pelos que você quiser. Em "baixo" você define a
+   quantidade a partir da qual aparece o aviso "Baixo".
+
+PARTE 3 — Publicar
+9. Acesse app.netlify.com/drop (crie conta grátis) e arraste a PASTA inteira
+   com todos os arquivos. Ele devolve um link (você pode renomear o endereço).
+10. Mande o link para os vendedores.
+
+PARTE 4 — Instalar no celular
+- Android (Chrome): abrir o link > menu ⋮ > "Instalar app" / "Adicionar à tela inicial".
+- iPhone (Safari): abrir o link > botão Compartilhar > "Adicionar à Tela de Início".
+
+NO DIA A DIA
+Altere as quantidades na planilha do Google. Os vendedores veem o número novo ao
+abrir o app ou tocar em ↻. (O Google pode levar até ~5 min para refletir a edição.)
+Para o app ficar ainda mais rápido, vale lembrar que a planilha publicada só
+mostra o que você já editou, então não precisa "republicar" a cada mudança.
+
+OBSERVAÇÃO SOBRE SEGURANÇA
+O PIN impede que a pessoa errada abra a marca por engano, mas não é segurança forte:
+quem tiver o link da planilha publicada consegue ver os dados. Não coloque preços
+ou informações sigilosas nessa planilha.
